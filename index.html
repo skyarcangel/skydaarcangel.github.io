@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Forever Message Board</title>
+  <style>
+    body { font-family: Arial; background: #f4f4f4; padding: 2rem; max-width: 600px; margin: auto; }
+    input, textarea, button { width: 100%; margin-bottom: 1rem; padding: 0.75rem; font-size: 1rem; }
+    button { background: #007bff; color: white; border: none; border-radius: 6px; cursor: pointer; }
+    button:hover { background: #0056b3; }
+    ul { list-style: none; padding: 0; }
+    li { background: white; padding: 1rem; margin-bottom: 1rem; border-radius: 6px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+    .timestamp { font-size: 0.8rem; color: #666; }
+    .username { font-weight: bold; }
+  </style>
+</head>
+<body>
+  <h1>Forever Message Board</h1>
+  <form id="msgForm">
+    <input type="text" name="username" placeholder="Your name…" required>
+    <textarea name="text" rows="4" placeholder="Type your message…" required></textarea>
+    <button type="submit">Send to Discord</button>
+  </form>
+  <ul id="msgs"></ul>
+
+  <script>
+    const WEBHOOK_URL = 'https://discord.com/api/webhooks/1395158161819701318/0Bol9U3UVzdSvU5WjUQnskqTJEovcfCZb-uh-yrztVY-pNyrbrLT-YuN7asuaK_vKFso';
+
+    document.getElementById('msgForm').addEventListener('submit', async e => {
+      e.preventDefault();
+      const username = e.target.username.value.trim();
+      const text = e.target.text.value.trim();
+      if (!username || !text) return;
+
+      const message = `**${username}**: ${text}`;
+
+      try {
+        await fetch(WEBHOOK_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ content: message })
+        });
+
+        const li = document.createElement('li');
+        li.innerHTML = `
+          <div class="timestamp">[${new Date().toLocaleString()}]</div>
+          <div class="username">${username}</div>
+          <div>${text}</div>
+        `;
+        document.getElementById('msgs').prepend(li);
+        e.target.reset();
+      } catch (err) {
+        alert("Failed to send message to Discord.");
+        console.error(err);
+      }
+    });
+  </script>
+</body>
+</html>
