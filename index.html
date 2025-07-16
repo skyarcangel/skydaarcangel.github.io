@@ -4,14 +4,81 @@
   <meta charset="UTF-8">
   <title>Forever Message Board</title>
   <style>
-    body { font-family: Arial; background: #f4f4f4; padding: 2rem; max-width: 600px; margin: auto; }
-    input, textarea, button { width: 100%; margin-bottom: 1rem; padding: 0.75rem; font-size: 1rem; }
-    button { background: #007bff; color: white; border: none; border-radius: 6px; cursor: pointer; }
-    button:hover { background: #0056b3; }
-    ul { list-style: none; padding: 0; }
-    li { background: white; padding: 1rem; margin-bottom: 1rem; border-radius: 6px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-    .timestamp { font-size: 0.8rem; color: #666; }
-    .username { font-weight: bold; }
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f0f2f5;
+      padding: 2rem;
+      max-width: 600px;
+      margin: auto;
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 2rem;
+      color: #333;
+    }
+    input, textarea, button {
+      width: 100%;
+      margin-bottom: 1rem;
+      padding: 0.75rem;
+      font-size: 1rem;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      transition: box-shadow 0.3s ease;
+    }
+    input:focus, textarea:focus {
+      box-shadow: 0 0 5px rgba(0,123,255,0.5);
+      outline: none;
+    }
+    button {
+      background: #007bff;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+    button:hover {
+      background: #0056b3;
+    }
+    ul {
+      list-style: none;
+      padding: 0;
+    }
+    li {
+      background: white;
+      padding: 1rem;
+      margin-bottom: 1rem;
+      border-radius: 6px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      position: relative;
+      opacity: 0;
+      animation: fadeIn 0.5s forwards;
+    }
+    .timestamp {
+      font-size: 0.8rem;
+      color: #666;
+    }
+    .username {
+      font-weight: bold;
+      color: #007bff;
+    }
+    .delete-btn {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      background: transparent;
+      border: none;
+      color: #888;
+      cursor: pointer;
+      font-size: 1rem;
+      transition: color 0.3s ease;
+    }
+    .delete-btn:hover {
+      color: red;
+    }
+    @keyframes fadeIn {
+      to { opacity: 1; }
+    }
   </style>
 </head>
 <body>
@@ -25,13 +92,24 @@
 
   <script>
     const WEBHOOK_URL = 'https://discord.com/api/webhooks/1395158161819701318/0Bol9U3UVzdSvU5WjUQnskqTJEovcfCZb-uh-yrztVY-pNyrbrLT-YuN7asuaK_vKFso';
+    const badWords = ['badword1', 'badword2', 'hell', 'damn']; // Add more as needed
+
+    function cleanText(text) {
+      let cleaned = text;
+      badWords.forEach(word => {
+        const regex = new RegExp(`\\b${word}\\b`, 'gi');
+        cleaned = cleaned.replace(regex, '****');
+      });
+      return cleaned;
+    }
 
     document.getElementById('msgForm').addEventListener('submit', async e => {
       e.preventDefault();
       const username = e.target.username.value.trim();
-      const text = e.target.text.value.trim();
+      let text = e.target.text.value.trim();
       if (!username || !text) return;
 
+      text = cleanText(text);
       const message = `**${username}**: ${text}`;
 
       try {
@@ -43,10 +121,12 @@
 
         const li = document.createElement('li');
         li.innerHTML = `
+          <button class="delete-btn" title="Delete">✖</button>
           <div class="timestamp">[${new Date().toLocaleString()}]</div>
           <div class="username">${username}</div>
           <div>${text}</div>
         `;
+        li.querySelector('.delete-btn').addEventListener('click', () => li.remove());
         document.getElementById('msgs').prepend(li);
         e.target.reset();
       } catch (err) {
@@ -57,3 +137,4 @@
   </script>
 </body>
 </html>
+
