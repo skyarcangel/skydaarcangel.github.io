@@ -4,78 +4,117 @@
   <meta charset="UTF-8">
   <title>Forever Message Board</title>
   <style>
+    :root {
+      --bg: #f9f9fb;
+      --card: #ffffff;
+      --primary: #1a73e8;
+      --text: #333;
+      --muted: #777;
+      --border: #e0e0e0;
+    }
+
     body {
-      font-family: 'Segoe UI', sans-serif;
-      background: #f0f2f5;
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      margin: 0;
       padding: 2rem;
       max-width: 600px;
       margin: auto;
     }
+
     h1 {
       text-align: center;
+      font-weight: 500;
       margin-bottom: 2rem;
-      color: #333;
     }
-    input, textarea, button {
+
+    form {
+      background: var(--card);
+      padding: 1.5rem;
+      border-radius: 10px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+      margin-bottom: 2rem;
+      border: 1px solid var(--border);
+    }
+
+    input, textarea {
       width: 100%;
-      margin-bottom: 1rem;
       padding: 0.75rem;
+      margin-bottom: 1rem;
+      border: 1px solid var(--border);
+      border-radius: 8px;
       font-size: 1rem;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      transition: box-shadow 0.3s ease;
+      background: #fff;
+      transition: border-color 0.3s ease;
     }
+
     input:focus, textarea:focus {
-      box-shadow: 0 0 5px rgba(0,123,255,0.5);
+      border-color: var(--primary);
       outline: none;
     }
+
     button {
-      background: #007bff;
+      width: 100%;
+      padding: 0.75rem;
+      background: var(--primary);
       color: white;
       border: none;
-      border-radius: 6px;
+      border-radius: 8px;
+      font-size: 1rem;
       cursor: pointer;
       transition: background 0.3s ease;
     }
+
     button:hover {
-      background: #0056b3;
+      background: #1558c0;
     }
+
     ul {
       list-style: none;
       padding: 0;
     }
+
     li {
-      background: white;
+      background: var(--card);
       padding: 1rem;
       margin-bottom: 1rem;
-      border-radius: 6px;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+      border: 1px solid var(--border);
       position: relative;
       opacity: 0;
-      animation: fadeIn 0.5s forwards;
+      animation: fadeIn 0.4s forwards;
     }
+
     .timestamp {
-      font-size: 0.8rem;
-      color: #666;
+      font-size: 0.75rem;
+      color: var(--muted);
+      margin-bottom: 0.25rem;
     }
+
     .username {
-      font-weight: bold;
-      color: #007bff;
+      font-weight: 600;
+      color: var(--primary);
+      margin-bottom: 0.5rem;
     }
+
     .delete-btn {
       position: absolute;
-      top: 8px;
-      right: 8px;
-      background: transparent;
+      top: 10px;
+      right: 10px;
+      background: none;
       border: none;
-      color: #888;
-      cursor: pointer;
+      color: var(--muted);
       font-size: 1rem;
+      cursor: pointer;
       transition: color 0.3s ease;
     }
+
     .delete-btn:hover {
       color: red;
     }
+
     @keyframes fadeIn {
       to { opacity: 1; }
     }
@@ -86,13 +125,13 @@
   <form id="msgForm">
     <input type="text" name="username" placeholder="Your name…" required>
     <textarea name="text" rows="4" placeholder="Type your message…" required></textarea>
-    <button type="submit">Send to Discord</button>
+    <button type="submit">Post</button>
   </form>
   <ul id="msgs"></ul>
 
   <script>
     const WEBHOOK_URL = 'https://discord.com/api/webhooks/1395158161819701318/0Bol9U3UVzdSvU5WjUQnskqTJEovcfCZb-uh-yrztVY-pNyrbrLT-YuN7asuaK_vKFso';
-    const badWords = ['badword1', 'badword2', 'hell', 'damn']; // Add more as needed
+    const badWords = ['badword1', 'badword2', 'hell', 'damn'];
 
     function cleanText(text) {
       let cleaned = text;
@@ -122,7 +161,7 @@
         const li = document.createElement('li');
         li.innerHTML = `
           <button class="delete-btn" title="Delete">✖</button>
-          <div class="timestamp">[${new Date().toLocaleString()}]</div>
+          <div class="timestamp">${new Date().toLocaleString()}</div>
           <div class="username">${username}</div>
           <div>${text}</div>
         `;
@@ -130,11 +169,10 @@
         document.getElementById('msgs').prepend(li);
         e.target.reset();
       } catch (err) {
-        alert("Failed to send message to Discord.");
+        alert("Failed to post message.");
         console.error(err);
       }
     });
   </script>
 </body>
 </html>
-
