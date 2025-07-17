@@ -1,245 +1,49 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8">
-  <title>Forever Message Board</title>
+  <title>Roblox Bot Helper</title>
   <style>
-    :root {
-      --bg: #f9f9fb;
-      --card: #ffffff;
-      --primary: #1a73e8;
-      --text: #333;
-      --muted: #777;
-      --border: #e0e0e0;
-    }
-
-    body {
-      font-family: 'Inter', sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      margin: 0;
-      padding: 2rem;
-      max-width: 600px;
-      margin: auto;
-    }
-
-    h1 {
-      text-align: center;
-      font-weight: 500;
-      margin-bottom: 2rem;
-    }
-
-    form {
-      background: var(--card);
-      padding: 1.5rem;
-      border-radius: 10px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-      margin-bottom: 2rem;
-      border: 1px solid var(--border);
-    }
-
-    input, textarea {
-      width: 100%;
-      padding: 0.75rem;
-      margin-bottom: 1rem;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      font-size: 1rem;
-      background: #fff;
-      transition: border-color 0.3s ease;
-    }
-
-    input:focus, textarea:focus {
-      border-color: var(--primary);
-      outline: none;
-    }
-
-    #charCount {
-      text-align: right;
-      font-size: 0.85rem;
-      color: var(--muted);
-      margin-top: -0.5rem;
-      margin-bottom: 1rem;
-    }
-
-    button {
-      width: 100%;
-      padding: 0.75rem;
-      background: var(--primary);
-      color: white;
-      border: none;
-      border-radius: 8px;
-      font-size: 1rem;
-      cursor: pointer;
-      transition: background 0.3s ease;
-    }
-
-    button:hover {
-      background: #1558c0;
-    }
-
-    ul {
-      list-style: none;
-      padding: 0;
-    }
-
-    li {
-      background: var(--card);
-      padding: 1rem;
-      margin-bottom: 1rem;
-      border-radius: 10px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-      border: 1px solid var(--border);
-      position: relative;
-      opacity: 0;
-      animation: fadeIn 0.4s forwards;
-    }
-
-    .timestamp {
-      font-size: 0.75rem;
-      color: var(--muted);
-      margin-bottom: 0.25rem;
-    }
-
-    .username {
-      font-weight: 600;
-      color: var(--primary);
-      margin-bottom: 0.5rem;
-    }
-
-    .delete-btn {
-      position: absolute;
-      top: 10px;
-      right: 10px;
-      background: none;
-      border: none;
-      color: var(--muted);
-      font-size: 1rem;
-      cursor: pointer;
-      transition: color 0.3s ease;
-    }
-
-    .delete-btn:hover {
-      color: red;
-    }
-
-    @keyframes fadeIn {
-      to { opacity: 1; }
-    }
+    body { font-family: Arial; padding: 20px; max-width: 600px; margin: auto; }
+    #chat { border: 1px solid #ccc; padding: 10px; height: 300px; overflow-y: scroll; margin-bottom: 10px; }
+    #input { width: 80%; padding: 10px; }
+    #send { padding: 10px; }
   </style>
 </head>
 <body>
-  <h1>Forever Message Board</h1>
-  <form id="msgForm">
-    <input type="text" name="username" placeholder="Your name…" required>
-    <textarea name="text" id="text" rows="4" placeholder="Type your message…" maxlength="280" required></textarea>
-    <div id="charCount">280 characters left</div>
-    <button type="submit">Post</button>
-  </form>
-  <ul id="msgs"></ul>
+
+  <h2>🤖 Ask the Roblox Bot</h2>
+  <div id="chat"></div>
+  <input id="input" placeholder="Ask something..." />
+  <button id="send">Send</button>
 
   <script>
-    const WEBHOOK_URL = 'https://discord.com/api/webhooks/1395158161819701318/0Bol9U3UVzdSvU5WjUQnskqTJEovcfCZb-uh-yrztVY-pNyrbrLT-YuN7asuaK_vKFso';
-    const badWords = ['badword1', 'badword2', 'hell', 'damn', 'crap', 'shit', 'fuck'];
-    const chillResponses = [
-      "Nope.",
-      "Stop.",
-      "I said stop.",
-      "Bro, chill.",
-      "Seriously, not cool.",
-      "You're better than this.",
-      "Try again, but nicer.",
-      "This is a peaceful place.",
-      "Words matter, friend.",
-      "Let's keep it clean ✨"
-    ];
-    let warningLevel = 0;
+    const chat = document.getElementById("chat");
+    const input = document.getElementById("input");
+    const send = document.getElementById("send");
 
-    const msgsEl = document.getElementById('msgs');
-    const textInput = document.getElementById('text');
-    const charCount = document.getElementById('charCount');
+    const responses = {
+      "what's on auction": "Right now: Golden Buffalo Rifle, Trader Hat, Desert Horse.",
+      "how do i earn money": "You can earn money by hunting animals, doing jobs, or trading.",
+      "how to find rare weapons": "Rare weapons spawn in caves and special events.",
+    };
 
-    textInput.addEventListener('input', () => {
-      const remaining = 280 - textInput.value.length;
-      charCount.textContent = `${remaining} characters left`;
-    });
+    send.onclick = () => {
+      const question = input.value.toLowerCase().trim();
+      chat.innerHTML += `<p><strong>You:</strong> ${input.value}</p>`;
 
-    function containsBadWords(text) {
-      return badWords.some(word => new RegExp(`\\b${word}\\b`, 'i').test(text));
-    }
-
-    function renderMessage(msg) {
-      const li = document.createElement('li');
-      li.innerHTML = `
-        <button class="delete-btn" title="Delete">✖</button>
-        <div class="timestamp">${msg.timestamp}</div>
-        <div class="username">${msg.username}</div>
-        <div>${msg.text}</div>
-      `;
-      li.querySelector('.delete-btn').addEventListener('click', () => {
-        li.remove();
-        deleteMessage(msg.id);
-      });
-      msgsEl.prepend(li);
-    }
-
-    function saveMessage(msg) {
-      const messages = JSON.parse(localStorage.getItem('messages') || '[]');
-      messages.push(msg);
-      localStorage.setItem('messages', JSON.stringify(messages));
-    }
-
-    function deleteMessage(id) {
-      let messages = JSON.parse(localStorage.getItem('messages') || '[]');
-      messages = messages.filter(m => m.id !== id);
-      localStorage.setItem('messages', JSON.stringify(messages));
-    }
-
-    function loadMessages() {
-      const messages = JSON.parse(localStorage.getItem('messages') || '[]');
-      messages.forEach(renderMessage);
-    }
-
-    document.getElementById('msgForm').addEventListener('submit', async e => {
-      e.preventDefault();
-      const username = e.target.username.value.trim();
-      const text = textInput.value.trim();
-      if (!username || !text) return;
-
-      if (text.length > 280) {
-        alert("Your message is too long. Keep it under 280 characters.");
-        return;
+      let answer = "I don't understand. Try asking about auctions, money, or weapons.";
+      for (let key in responses) {
+        if (question.includes(key)) {
+          answer = responses[key];
+          break;
+        }
       }
 
-      if (containsBadWords(text)) {
-        alert(chillResponses[Math.min(warningLevel, chillResponses.length - 1)]);
-        warningLevel++;
-        return;
-      }
-
-      const timestamp = new Date().toLocaleString();
-      const id = Date.now().toString();
-      const msg = { id, username, text, timestamp };
-
-      try {
-        await fetch(WEBHOOK_URL, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ content: `**${username}**: ${text}` })
-        });
-
-        renderMessage(msg);
-        saveMessage(msg);
-        e.target.reset();
-        charCount.textContent = "280 characters left";
-        warningLevel = 0;
-      } catch (err) {
-        alert("Failed to post message.");
-        console.error(err);
-      }
-    });
-
-    loadMessages();
+      chat.innerHTML += `<p><strong>Bot:</strong> ${answer}</p>`;
+      input.value = "";
+      chat.scrollTop = chat.scrollHeight;
+    };
   </script>
+
 </body>
 </html>
