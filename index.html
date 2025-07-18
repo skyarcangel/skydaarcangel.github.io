@@ -1,49 +1,159 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Roblox Bot Helper</title>
-  <style>
-    body { font-family: Arial; padding: 20px; max-width: 600px; margin: auto; }
-    #chat { border: 1px solid #ccc; padding: 10px; height: 300px; overflow-y: scroll; margin-bottom: 10px; }
-    #input { width: 80%; padding: 10px; }
-    #send { padding: 10px; }
-  </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Wild West Wiki AI Bot</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    max-width: 600px;
+    margin: 40px auto;
+    padding: 10px;
+    background: #f9f9f9;
+  }
+  #chat {
+    border: 1px solid #ccc;
+    background: white;
+    padding: 10px;
+    height: 350px;
+    overflow-y: auto;
+    margin-bottom: 10px;
+    white-space: pre-wrap;
+  }
+  #userInput {
+    width: 80%;
+    padding: 10px;
+    font-size: 1em;
+  }
+  #sendBtn {
+    padding: 10px 15px;
+    font-size: 1em;
+  }
+  .message {
+    margin: 8px 0;
+  }
+  .user {
+    color: #007bff;
+    font-weight: bold;
+  }
+  .bot {
+    color: #28a745;
+  }
+  .loading {
+    font-style: italic;
+    color: gray;
+  }
+</style>
 </head>
 <body>
 
-  <h2>🤖 Ask the Roblox Bot</h2>
-  <div id="chat"></div>
-  <input id="input" placeholder="Ask something..." />
-  <button id="send">Send</button>
+<h1>Wild West Wiki AI Bot</h1>
+<div id="chat" aria-live="polite" aria-atomic="true"></div>
 
-  <script>
-    const chat = document.getElementById("chat");
-    const input = document.getElementById("input");
-    const send = document.getElementById("send");
+<input type="text" id="userInput" placeholder="Ask about The Wild West game..." aria-label="Ask a question"/>
+<button id="sendBtn">Send</button>
 
-    const responses = {
-      "what's on auction": "Right now: Golden Buffalo Rifle, Trader Hat, Desert Horse.",
-      "how do i earn money": "You can earn money by hunting animals, doing jobs, or trading.",
-      "how to find rare weapons": "Rare weapons spawn in caves and special events.",
-    };
+<script>
+  // Your combined text file on GitHub (raw link)
+  const dataURL = 'https://raw.githubusercontent.com/skyarcangel/skydaarcangel.github.io/main/data/wildwest_combined.txt';
 
-    send.onclick = () => {
-      const question = input.value.toLowerCase().trim();
-      chat.innerHTML += `<p><strong>You:</strong> ${input.value}</p>`;
+  const chat = document.getElementById('chat');
+  const userInput = document.getElementById('userInput');
+  const sendBtn = document.getElementById('sendBtn');
 
-      let answer = "I don't understand. Try asking about auctions, money, or weapons.";
-      for (let key in responses) {
-        if (question.includes(key)) {
-          answer = responses[key];
-          break;
-        }
+  let wikiText = '';
+  let loading = false;
+
+  // Load wiki text once on page load
+  appendMessage('Bot', 'Loading knowledge base, please wait...');
+  fetch(dataURL)
+    .then(res => res.text())
+    .then(text => {
+      wikiText = text.toLowerCase();
+      appendMessage('Bot', 'Knowledge base loaded! Ask me anything about The Wild West.');
+    })
+    .catch(err => {
+      appendMessage('Bot', 'Failed to load knowledge base.');
+      console.error(err);
+    });
+
+  sendBtn.addEventListener('click', () => {
+    const question = userInput.value.trim();
+    if (!question) return;
+    if (loading) return;
+
+    appendMessage('You', question);
+    userInput.value = '';
+    loading = true;
+    appendMessage('Bot', 'Searching...');
+
+    setTimeout(() => {
+      const answer = findAnswer(question);
+      removeLastBotMessage();
+      appendMessage('Bot', answer);
+      loading = false;
+    }, 100); // Small delay for UX
+  });
+
+  userInput.addEventListener('keydown', e => {
+    if (e.key === 'Enter') sendBtn.click();
+  });
+
+  function appendMessage(sender, text) {
+    const div = document.createElement('div');
+    div.className = 'message ' + (sender.toLowerCase() === 'you' ? 'user' : 'bot');
+    div.textContent = sender + ': ' + text;
+    chat.appendChild(div);
+    chat.scrollTop = chat.scrollHeight;
+  }
+
+  function removeLastBotMessage() {
+    const messages = chat.querySelectorAll('.bot');
+    if (messages.length) {
+      const last = messages[messages.length - 1];
+      if (last.textContent.includes('Searching...')) {
+        chat.removeChild(last);
       }
+    }
+  }
 
-      chat.innerHTML += `<p><strong>Bot:</strong> ${answer}</p>`;
-      input.value = "";
-      chat.scrollTop = chat.scrollHeight;
-    };
-  </script>
+  function findAnswer(question) {
+    // Simple keyword matching on the wikiText
+    question = question.toLowerCase();
+
+    // Split the big wiki text into chunks for searching
+    // For performance, split by paragraphs or lines
+    const chunks = wikiText.split('\n\n');
+
+    // Find all chunks containing ANY keyword from question
+    const keywords = question.split(/\W+/).filter(w => w.length > 2); // words longer than 2 chars
+    if (!keywords.length) return "Sorry, I couldn't understand the question.";
+
+    // Score each chunk by count of matched keywords
+    const scoredChunks = chunks.map(chunk => {
+      let score = 0;
+      for (const kw of keywords) {
+        if (chunk.includes(kw)) score++;
+      }
+      return {chunk, score};
+    });
+
+    // Sort descending by score
+    scoredChunks.sort((a,b) => b.score - a.score);
+
+    // Pick top chunk with highest score > 0
+    if (scoredChunks[0].score === 0) {
+      return "Sorry, I couldn't find relevant info in the wiki.";
+    }
+
+    // Return snippet, limit to 600 chars max for readability
+    let snippet = scoredChunks[0].chunk.trim();
+    if (snippet.length > 600) snippet = snippet.slice(0, 600) + '...';
+
+    return snippet;
+  }
+</script>
 
 </body>
 </html>
